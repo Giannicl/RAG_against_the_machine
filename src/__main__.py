@@ -1,44 +1,28 @@
+import sys
+import argparse
+from typing import List, Optional
 
-from pydantic import BaseModel, ConfigDict
 
-from typing import List
+DEFAULT_DATASET_PATH = "" 
+DEFAULT_SAVE_DIRECTORY = ""
+DEFAULT_STUDEN_SEARCH_RESULTS_PATH = ""
+K = 10
 
 
-class InputError(Exception):
-    pass
+def args_parser(argv: Optional[List] = None) -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        prog="python -m src",
+        description="This programme is a retrieval pipeline "
+        "that augments the knowledge of an LLM",
+    )
 
-class MinimalSource(BaseModel):
-    file_path: str
-    first_character_index: int
-    last_character_index int
+    parser.add_argument("")
 
-class UnansweredQuestion(BaseModel):
-    question_id: str = Field(default_factory=lambda: str(uuid.uuid4()))
-    question: str
 
-class AnsweredQuestion(UnansweredQuestion):
-    sources: List[MinimalSource]
-    answer: str
+def main(argv: Optional[List] = None) -> int:
 
-class RagDataset(BaseModel):
-    rag_questions: List[AnsweredQuestion | UnansweredQuestion]
+    return 0
 
-class MinimalSearchResults(BaseModel):
 
-    model_config = ConfigDict(extra="ignore")
-
-    question_id: str
-    question: str
-    retrieved_sources: List[MinimalSource]
-
-class MinimalAnswer(MinimalSearchResults):
-    answer: str
-
-class StudentSearchResults(BaseModel):
-    
-    search_results: List[MinimalSearchResults]
-    k: int
-
-class StudentSearchResultsAndAnswer(BaseModel):
-    search_results: List[MinimalAnswer]
-    k: int
+if "__name__" = __main__:
+    sys.exit(main())
