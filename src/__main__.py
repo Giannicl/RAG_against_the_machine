@@ -1,28 +1,30 @@
+import fire
 import sys
-import argparse
-from typing import List, Optional
 
 
-DEFAULT_DATASET_PATH = "" 
+DEFAULT_INGEST_PATH = "data/raw/"
+DEFAULT_BUILD_PATH = "data/processed/"
 DEFAULT_SAVE_DIRECTORY = ""
-DEFAULT_STUDEN_SEARCH_RESULTS_PATH = ""
+DEFAULT_STUDENT_SEARCH_RESULTS_PATH = ""
 K = 10
 
 
-def args_parser(argv: Optional[List] = None) -> argparse.Namespace:
-    parser = argparse.ArgumentParser(
-        prog="python -m src",
-        description="This programme is a retrieval pipeline "
-        "that augments the knowledge of an LLM",
-    )
+class Parser:
 
-    parser.add_argument("")
+    def index(
+        self, ingest: str = DEFAULT_INGEST_PATH, build: str = DEFAULT_BUILD_PATH
+    ) -> None:
+        print(f"{ingest} and {build}")
+
+    def search(self, query: str, k: int = K) -> None:
+        print(f"{query}, {k}")
 
 
-def main(argv: Optional[List] = None) -> int:
+def main() -> int:
+    fire.Fire(Parser)
 
     return 0
 
 
-if "__name__" = __main__:
+if __name__ == "__main__":
     sys.exit(main())
