@@ -6,8 +6,10 @@ type_checker:= mypy
 tester:= tests
 max_chunk_size?=
 k?=
+query?=
 dataset_path?=
 save_directory?=
+student_search_results_path?=
 
 install:
 	uv sync
@@ -16,19 +18,19 @@ run-index:
 	uv run python -m $(src) index $(if $(max_chunk_size), --max_chunk_size $(max_chunk_size))
 
 run-search:
-	uv run python -m $(src) search --query $(query) $(if $(k), --k $(k))
+	uv run python -m $(src) search $(if $(query), --query "$(query)") $(if $(k), --k $(k))
 
 run-search-dataset:
-	uv run python -m $(src) search_dataset --dataset_path $(if $(dataset_path), --dataset_path $(dataset_path)) $(if $(k), --k $(k)) $(if $(save_directory), --k $(save_directory))
+	uv run python -m $(src) search_dataset $(if $(dataset_path), --dataset_path $(dataset_path)) $(if $(k), --k $(k)) $(if $(save_directory), --save_directory $(save_directory))
 
 run-answer:
-	uv run python -m $(src) answer
+	uv run python -m $(src) answer $(if $(query), --query "$(query)") $(if $(k), --k $(k)) 
 
 run-evaluate:
-	uv run python -m $(src) evaluate
+	uv run python -m $(src) evaluate $(if $(student_search_results_path), --student_search_results_path $(student_search_results_path)) $(if $(dataset_path), --dataset_path $(dataset_path)) 
 
 run-answer-dataset:
-	uv run python -m $(src) answer_dataset
+	uv run python -m $(src) answer_dataset $(if $(student_search_results_path), --student_search_results_path $(student_search_results_path)) $(if $(save_directory), --save_directory $(save_directory)) 
 
 debug:
 	uv run python -m pdb -m $(src)
