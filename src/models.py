@@ -1,4 +1,5 @@
-from pydantic import BaseModel, ConfigDict, Field, uuid
+from pydantic import BaseModel, ConfigDict, Field
+import uuid
 
 from typing import List
 
