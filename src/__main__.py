@@ -2,6 +2,8 @@ import fire
 import sys
 from .splitter import file_composer
 from .rag_tools import indexer
+from tqdm import tqdm
+import time
 
 
 _INGEST_PATH = "data/raw/vllm-0.10.1"
@@ -28,9 +30,6 @@ class Parser:
     ) -> None:
         corpus = file_composer(ingest_path, max_chunk_size)
         indexer(corpus, save_directory)
-
-    def index(self, max_chunk_size: int = _MAX_CHUNK_SIZE) -> None:
-        print(f"{max_chunk_size}")
 
     def search(self, query: str, k: int = _K) -> None:
         print(f"{query}, {k}")
