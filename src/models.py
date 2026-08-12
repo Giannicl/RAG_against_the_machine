@@ -1,9 +1,5 @@
-<<<<<<< HEAD
 from pydantic import BaseModel, ConfigDict, Field
 import uuid
-=======
-from pydantic import BaseModel, ConfigDict, Field, uuid
->>>>>>> 558e14558e7dba959412ded5150bd48d87abd0f5
 
 from typing import List
 

@@ -1,16 +1,13 @@
 import fire
 import sys
-<<<<<<< HEAD
 from .splitter import file_composer
 from .rag_tools import indexer
 
 
 _INGEST_PATH = "data/raw/vllm-0.10.1"
-=======
 
 
 _INGEST_PATH = "data/raw/"
->>>>>>> 558e14558e7dba959412ded5150bd48d87abd0f5
 _BUILD_PATH = "data/processed/"
 _DATASET_PATH = "data/datasets/UnansweredQuestions/dataset_docs_public.json"
 _SAVE_DIRECTORY = "data/output/search_results/UnansweredQuestions/"
@@ -23,7 +20,6 @@ _K = 10
 
 class Parser:
 
-<<<<<<< HEAD
     def index(
         self,
         max_chunk_size: int = _MAX_CHUNK_SIZE,
@@ -32,10 +28,9 @@ class Parser:
     ) -> None:
         corpus = file_composer(ingest_path, max_chunk_size)
         indexer(corpus, save_directory)
-=======
+
     def index(self, max_chunk_size: int = _MAX_CHUNK_SIZE) -> None:
         print(f"{max_chunk_size}")
->>>>>>> 558e14558e7dba959412ded5150bd48d87abd0f5
 
     def search(self, query: str, k: int = _K) -> None:
         print(f"{query}, {k}")

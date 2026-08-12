@@ -2,7 +2,7 @@ import bm25s
 from itertools import chain
 from typing import List
 from langchain_core.documents import Document
-from models import MinimalSource
+from .models import MinimalSource
 
 
 def _flatten(corpus: List[List[Document]]) -> List[Document]:
