@@ -1,4 +1,4 @@
-.PHONY: install run debug lint lint-strict test clean index search search_dataset answer evaluate answer_dataset
+.PHONY: install run debug lint lint-strict test clean run-index run-search run-search-dataset run-answer run-evaluate run-answer-dataset
 
 src:= src
 linter:= flake8
@@ -13,6 +13,9 @@ student_search_results_path?=
 
 install:
 	uv sync
+
+run:
+	uv run python -m $(src)
 
 run-index:
 	uv run python -m $(src) index $(if $(max_chunk_size), --max_chunk_size $(max_chunk_size))
@@ -39,12 +42,14 @@ test:
 	uv run pytest -q
 
 lint:
-	uv run $(linter) $(src) $(tester)
-	uv run $(type_checker) $(src)
+	uv run $(linter) .
+	uv run $(type_checker) .\
+		--ignore-missing-imports --disallow-untyped-defs --check-untyped-defs --warn-return-any
 
 lint-strict:
-	uv run $(linter) $(src) $(tester)
-	uv run $(type_checker) --strict $(src)
+	uv run $(linter) .
+	uv run $(type_checker) . --strict
 
 clean:
 	find . -type d -name '__pycache__' -prune -exec rm -rf {} +
+	rm -rf .mypy_cache .pytest_cache

@@ -30,7 +30,8 @@ package = false
 warn_unused_ignores = true
 disallow_untyped_defs = true
 check_untyped_defs = true
-exclude = ['^docs/', '^llm_sdk/', '\.artifacts/', '^build/']
+exclude = ['^data/', '^llm_sdk/', '\.venv/', '_docs']
+
 
 [[tool.mypy.overrides]]
 module = [

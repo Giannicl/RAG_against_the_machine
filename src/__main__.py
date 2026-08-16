@@ -1,18 +1,18 @@
+from os import wait
 import fire
 import sys
 from .splitter import file_composer
-from .rag_tools import indexer
+from .rag_tools import indexer, searcher
 from tqdm import tqdm
 import time
-
-
-_INGEST_PATH = "data/raw/vllm-0.10.1"
 
 
 _INGEST_PATH = "data/raw/"
 _BUILD_PATH = "data/processed/"
 _DATASET_PATH = "data/datasets/UnansweredQuestions/dataset_docs_public.json"
-_SAVE_DIRECTORY = "data/output/search_results/UnansweredQuestions/"
+_GROUND_TRUTH = "data/datasets/AnsweredQuestions/dataset_docs_public.json"
+_SEARCH_RESULTS_DIRECTORY = "data/output/search_results/UnansweredQuestions/"
+_ANSWER_RESULTS_DIRECTORY = "data/output/search_results_and_answer/UnansweredQuestions/"
 _STUDENT_SEARCH_RESULTS_PATH = (
     "data/output/search_results/UnansweredQuestions/dataset_docs_public.json"
 )
@@ -31,16 +31,20 @@ class Parser:
         corpus = file_composer(ingest_path, max_chunk_size)
         indexer(corpus, build_path)
 
-    def search(self, query: str, k: int = _K) -> None:
-        print(f"{query}, {k}")
+    def search(self, query: str, build_path: str = _BUILD_PATH, k: int = _K) -> None:
+        hits = searcher(query, build_path, k)
+        keys = ["file_path", "first_character_index", "last_character_index"]
+        for minimal_source in hits:
+            print(
+                f"{minimal_source.file_path} [{minimal_source.first_character_index}:{minimal_source.last_character_index}]"
+            )
 
     def search_dataset(
         self,
         dataset_path: str = _DATASET_PATH,
         k: int = _K,
-        save_directory: str = _SAVE_DIRECTORY,
-    ) -> None:
-        print(f"{dataset_path}, {k}, {save_directory}")
+        save_directory: str = _SEARCH_RESULTS_DIRECTORY,
+    ) -> None: ...
 
     def answer(self, query: str, k=_K) -> None:
         print(f"{query}, {k}")
@@ -48,14 +52,14 @@ class Parser:
     def evaluate(
         self,
         student_search_results_path: str = _STUDENT_SEARCH_RESULTS_PATH,
-        dataset_path: str = _DATASET_PATH,
+        dataset_path: str = _GROUND_TRUTH,
     ) -> None:
         print(f"{student_search_results_path}, {dataset_path}")
 
     def answer_dataset(
         self,
         student_search_results_path: str = _STUDENT_SEARCH_RESULTS_PATH,
-        save_directory: str = _SAVE_DIRECTORY,
+        save_directory: str = _ANSWER_RESULTS_DIRECTORY,
     ) -> None:
         print(f"{student_search_results_path}, {save_directory}")
 
