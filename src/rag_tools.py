@@ -12,7 +12,7 @@ def _flatten(corpus: List[List[Document]]) -> List[Document]:
 
 
 def indexer(
-    corpus: List[List[Document]], save_directory: str, show_progress: bool = True
+    corpus: List[List[Document]], build_path: str, show_progress: bool = True
 ) -> None:
     corpus = _flatten(corpus)
     text = [
@@ -36,14 +36,12 @@ def indexer(
     )
     retriever = bm25s.BM25()
 
-    dir_path = Path(save_directory)
+    dir_path = Path(build_path)
     dir_path.mkdir(parents=True, exist_ok=True)
 
     retriever.index(corpus_tokens)
-    retriever.save(save_directory)
-    print(
-        "Ingestion complete! Indexed {.....} chunks under {path/of/data}"
-    )  # insert chunk amount and data path
+    retriever.save(build_path)
+    print(f"Ingestion complete! Indexed {len(text)} chunks under {build_path}")
 
 
 def searcher(

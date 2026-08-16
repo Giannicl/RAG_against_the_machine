@@ -26,10 +26,10 @@ class Parser:
         self,
         max_chunk_size: int = _MAX_CHUNK_SIZE,
         ingest_path: str = _INGEST_PATH,
-        save_directory: str = _SAVE_DIRECTORY,
+        build_path: str = _BUILD_PATH,
     ) -> None:
         corpus = file_composer(ingest_path, max_chunk_size)
-        indexer(corpus, save_directory)
+        indexer(corpus, build_path)
 
     def search(self, query: str, k: int = _K) -> None:
         print(f"{query}, {k}")
