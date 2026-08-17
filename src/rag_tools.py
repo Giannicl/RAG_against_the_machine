@@ -54,17 +54,20 @@ def indexer(
 
 
 def searcher(
-    query: str,
+    queries: str | List[str],
     build_path: str,
     k: int,
 ) -> List[MinimalSource]:
-
+    single = isinstance(queries, str)
+    if single:
+        queries = [queries]
     retriever = bm25s.BM25.load(build_path, load_corpus=True)
-    query_tokens = bm25s.tokenize(query, stopwords="en")
-    results, score = retriever.retrieve(query_tokens, k=k)
+    query_tokens = bm25s.tokenize(queries, stopwords="en")
+    results, scores = retriever.retrieve(query_tokens, k=k)
 
     return [
-        MinimalSource(**results[0, i])
-        for i in range(results.shape[1])
-        if score[0, i] > 0
+        MinimalSource(**results[i, j])
+        for i in range(results.shape[0])
+        for j in range(results.shape[1])
+        if scores[i, j] > 0
     ]

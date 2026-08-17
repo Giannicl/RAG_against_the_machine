@@ -1,15 +1,17 @@
-from os import wait
 import fire
 import sys
+
+from src.io import _read_document, _JSON_parser
 from .splitter import file_composer
 from .rag_tools import indexer, searcher
 from tqdm import tqdm
-import time
 
 
 _INGEST_PATH = "data/raw/"
 _BUILD_PATH = "data/processed/"
-_DATASET_PATH = "data/datasets/UnansweredQuestions/dataset_docs_public.json"
+_UNANSWERED_QUESTIONS_PATH = (
+    "data/datasets/UnansweredQuestions/dataset_docs_public.json"
+)
 _GROUND_TRUTH = "data/datasets/AnsweredQuestions/dataset_docs_public.json"
 _SEARCH_RESULTS_DIRECTORY = "data/output/search_results/UnansweredQuestions/"
 _ANSWER_RESULTS_DIRECTORY = "data/output/search_results_and_answer/UnansweredQuestions/"
@@ -33,7 +35,6 @@ class Parser:
 
     def search(self, query: str, build_path: str = _BUILD_PATH, k: int = _K) -> None:
         hits = searcher(query, build_path, k)
-        keys = ["file_path", "first_character_index", "last_character_index"]
         for minimal_source in hits:
             print(
                 f"{minimal_source.file_path} [{minimal_source.first_character_index}:{minimal_source.last_character_index}]"
@@ -41,10 +42,18 @@ class Parser:
 
     def search_dataset(
         self,
-        dataset_path: str = _DATASET_PATH,
+        dataset_path: str = _UNANSWERED_QUESTIONS_PATH,
         k: int = _K,
+        build_path=_BUILD_PATH,
         save_directory: str = _SEARCH_RESULTS_DIRECTORY,
-    ) -> None: ...
+    ) -> None:
+        queries = _JSON_parser(dataset_path)["rag_questions"]
+        queries = [query["question"] for query in queries]
+        hits = searcher(queries, build_path, k)
+        for minimal_source in hits:
+            print(
+                f"{minimal_source.file_path} [{minimal_source.first_character_index}:{minimal_source.last_character_index}]"
+            )
 
     def answer(self, query: str, k=_K) -> None:
         print(f"{query}, {k}")
