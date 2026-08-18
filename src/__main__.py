@@ -3,7 +3,7 @@ import sys
 
 from src.io import _read_document, _JSON_parser
 from .splitter import file_composer
-from .rag_tools import indexer, searcher
+from .rag_tools import indexer, searcher, _minimal_search_results_builder
 from tqdm import tqdm
 
 
@@ -48,12 +48,13 @@ class Parser:
         save_directory: str = _SEARCH_RESULTS_DIRECTORY,
     ) -> None:
         queries = _JSON_parser(dataset_path)["rag_questions"]
-        queries = [query["question"] for query in queries]
-        hits = searcher(queries, build_path, k)
-        for minimal_source in hits:
-            print(
-                f"{minimal_source.file_path} [{minimal_source.first_character_index}:{minimal_source.last_character_index}]"
-            )
+        query_questions = [query["question"] for query in queries]
+        query_ids = [query["question_id"] for query in queries]
+        retrieved_sources = searcher(query_questions, build_path, k)
+        minimal_search_results = _minimal_search_results_builder(
+            query_ids, query_questions, retrieved_sources
+        )
+        print(f"{minimal_search_results}")
 
     def answer(self, query: str, k=_K) -> None:
         print(f"{query}, {k}")

@@ -2,13 +2,28 @@ import bm25s
 from itertools import chain
 from typing import List, Tuple
 from langchain_core.documents import Document
-from .models import MinimalSource
+from .models import MinimalSearchResults, MinimalSource
 from pathlib import Path
 from tqdm import tqdm
 
 
 def _flatten(corpus: List[List[Document]]) -> List[Document]:
     return list(chain.from_iterable(corpus))
+
+
+def _minimal_search_results_builder(
+    question_ids: str, questions: str, retrieved_sources: List[MinimalSource]
+) -> List[MinimalSearchResults]:
+    metadata = []
+    for i in range(len(question_ids)):
+        metadata.append(
+            {
+                "question_id": question_ids[i],
+                "question": questions[i],
+                "retrieved_sources": retrieved_sources,
+            }
+        )
+        return [MinimalSearchResults(**metadata[i]) for i in range(len(metadata))]
 
 
 def indexer(
