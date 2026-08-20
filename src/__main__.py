@@ -1,10 +1,12 @@
 import fire
 import sys
 
-from src.io import _read_document, _JSON_parser
+from src.io import _read_document, _JSON_parser, _object_to_json
+from src.models import StudentSearchResults
 from .splitter import file_composer
 from .rag_tools import indexer, searcher, _minimal_search_results_builder
 from tqdm import tqdm
+from pathlib import Path
 
 
 _INGEST_PATH = "data/raw/"
@@ -54,7 +56,12 @@ class Parser:
         minimal_search_results = _minimal_search_results_builder(
             query_ids, query_questions, retrieved_sources
         )
-        print(f"{minimal_search_results}")
+        student_search_result_model = StudentSearchResults(
+            search_results=minimal_search_results, k=k
+        )
+        _object_to_json(
+            student_search_result_model, save_directory, Path(dataset_path).name
+        )
 
     def answer(self, query: str, k=_K) -> None:
         print(f"{query}, {k}")

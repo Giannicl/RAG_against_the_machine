@@ -1,6 +1,6 @@
 import bm25s
 from itertools import chain
-from typing import List, Tuple
+from typing import List
 from langchain_core.documents import Document
 from .models import MinimalSearchResults, MinimalSource
 from pathlib import Path
@@ -12,18 +12,20 @@ def _flatten(corpus: List[List[Document]]) -> List[Document]:
 
 
 def _minimal_search_results_builder(
-    question_ids: str, questions: str, retrieved_sources: List[MinimalSource]
+    question_ids: List[str],
+    questions: List[str],
+    retrieved_sources: List[MinimalSource],
 ) -> List[MinimalSearchResults]:
-    metadata = []
-    for i in range(len(question_ids)):
-        metadata.append(
-            {
-                "question_id": question_ids[i],
-                "question": questions[i],
-                "retrieved_sources": retrieved_sources,
-            }
+    return [
+        MinimalSearchResults(
+            question_id=question_id,
+            question=question,
+            retrieved_sources=retrieved_sources,
         )
-        return [MinimalSearchResults(**metadata[i]) for i in range(len(metadata))]
+        for question_id, question, retrieved_sources in zip(
+            question_ids, questions, retrieved_sources
+        )
+    ]
 
 
 def indexer(
@@ -72,7 +74,7 @@ def searcher(
     queries: str | List[str],
     build_path: str,
     k: int,
-) -> List[MinimalSource]:
+) -> List[List[MinimalSource]]:
     single = isinstance(queries, str)
     if single:
         queries = [queries]
@@ -81,8 +83,10 @@ def searcher(
     results, scores = retriever.retrieve(query_tokens, k=k)
 
     return [
-        MinimalSource(**results[i, j])
+        [
+            MinimalSource(**results[i, j])
+            for j in range(results.shape[1])
+            if scores[i, j] > 0
+        ]
         for i in range(results.shape[0])
-        for j in range(results.shape[1])
-        if scores[i, j] > 0
     ]
