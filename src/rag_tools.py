@@ -1,3 +1,4 @@
+from os import wait
 import bm25s
 from itertools import chain
 from typing import List
@@ -71,13 +72,10 @@ def indexer(
 
 
 def searcher(
-    queries: str | List[str],
+    queries: List[str],
     build_path: str,
     k: int,
 ) -> List[List[MinimalSource]]:
-    single = isinstance(queries, str)
-    if single:
-        queries = [queries]
     retriever = bm25s.BM25.load(build_path, load_corpus=True)
     query_tokens = bm25s.tokenize(queries, stopwords="en")
     results, scores = retriever.retrieve(query_tokens, k=k)

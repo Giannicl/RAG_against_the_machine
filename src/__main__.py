@@ -36,8 +36,8 @@ class Parser:
         indexer(corpus, build_path)
 
     def search(self, query: str, build_path: str = _BUILD_PATH, k: int = _K) -> None:
-        hits = searcher(query, build_path, k)
-        for minimal_source in hits:
+        retrieved_sources = searcher([query], build_path, k)[0]
+        for minimal_source in retrieved_sources:
             print(
                 f"{minimal_source.file_path} [{minimal_source.first_character_index}:{minimal_source.last_character_index}]"
             )
@@ -64,7 +64,10 @@ class Parser:
         )
 
     def answer(self, query: str, k=_K) -> None:
-        print(f"{query}, {k}")
+        retrieved_sources = self.search(query, _BUILD_PATH, k)
+
+        answer = answer_generator(query, retrieved_sources, k)
+        print(answer)
 
     def evaluate(
         self,
