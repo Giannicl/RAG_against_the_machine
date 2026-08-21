@@ -1,3 +1,4 @@
+from re import search
 import fire
 import sys
 
@@ -10,7 +11,7 @@ from pathlib import Path
 
 
 _INGEST_PATH = "data/raw/"
-_BUILD_PATH = "data/processed/"
+_PROCESSED_DATA = "data/processed/"
 _UNANSWERED_QUESTIONS_PATH = (
     "data/datasets/UnansweredQuestions/dataset_docs_public.json"
 )
@@ -30,12 +31,14 @@ class Parser:
         self,
         max_chunk_size: int = _MAX_CHUNK_SIZE,
         ingest_path: str = _INGEST_PATH,
-        build_path: str = _BUILD_PATH,
+        build_path: str = _PROCESSED_DATA,
     ) -> None:
         corpus = file_composer(ingest_path, max_chunk_size)
         indexer(corpus, build_path)
 
-    def search(self, query: str, build_path: str = _BUILD_PATH, k: int = _K) -> None:
+    def search(
+        self, query: str, build_path: str = _PROCESSED_DATA, k: int = _K
+    ) -> None:
         retrieved_sources = searcher([query], build_path, k)[0]
         for minimal_source in retrieved_sources:
             print(
@@ -46,7 +49,7 @@ class Parser:
         self,
         dataset_path: str = _UNANSWERED_QUESTIONS_PATH,
         k: int = _K,
-        build_path=_BUILD_PATH,
+        build_path=_PROCESSED_DATA,
         save_directory: str = _SEARCH_RESULTS_DIRECTORY,
     ) -> None:
         queries = _JSON_parser(dataset_path)["rag_questions"]
@@ -63,9 +66,8 @@ class Parser:
             student_search_result_model, save_directory, Path(dataset_path).name
         )
 
-    def answer(self, query: str, k=_K) -> None:
-        retrieved_sources = self.search(query, _BUILD_PATH, k)
-
+    def answer(self, query: str, k=_K, build_path: str = _PROCESSED_DATA) -> None:
+        retrieved_sources = search(query, k, build_path)
         answer = answer_generator(query, retrieved_sources, k)
         print(answer)
 
