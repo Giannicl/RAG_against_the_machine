@@ -20,7 +20,7 @@ def _JSON_parser(document: str) -> Dict:
     return data
 
 
-def _object_to_json(model: BaseModel, dir_path: str, file_name: str) -> str:
+def _save_object(model: BaseModel, dir_path: str, file_name: str) -> str:
     path = Path(dir_path)
     path.mkdir(parents=True, exist_ok=True)
     output_path = f"{dir_path}/{file_name}"

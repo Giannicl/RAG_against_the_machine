@@ -1,11 +1,14 @@
-from re import search
 import fire
 import sys
-
-from src.io import _read_document, _JSON_parser, _object_to_json
+from src.io import _read_document, _JSON_parser, _save_object
 from src.models import StudentSearchResults
-from .splitter import file_composer
-from .rag_tools import indexer, searcher, _minimal_search_results_builder
+from .chunking import file_composer
+from .index import indexer
+from .search import (
+    searcher,
+    _minimal_search_results_builder,
+    _extract_questions_and_ids,
+)
 from tqdm import tqdm
 from pathlib import Path
 
@@ -13,9 +16,9 @@ from pathlib import Path
 _INGEST_PATH = "data/raw/"
 _PROCESSED_DATA = "data/processed/"
 _UNANSWERED_QUESTIONS_PATH = (
-    "data/datasets/UnansweredQuestions/dataset_docs_public.json"
+    "data/datasets_public/public/UnansweredQuestions/dataset_docs_public.json"
 )
-_GROUND_TRUTH = "data/datasets/AnsweredQuestions/dataset_docs_public.json"
+_GROUND_TRUTH = "data/datasets_public/public/AnsweredQuestions/dataset_docs_public.json"
 _SEARCH_RESULTS_DIRECTORY = "data/output/search_results/UnansweredQuestions/"
 _ANSWER_RESULTS_DIRECTORY = "data/output/search_results_and_answer/UnansweredQuestions/"
 _STUDENT_SEARCH_RESULTS_PATH = (
@@ -53,22 +56,22 @@ class Parser:
         save_directory: str = _SEARCH_RESULTS_DIRECTORY,
     ) -> None:
         queries = _JSON_parser(dataset_path)["rag_questions"]
-        query_questions = [query["question"] for query in queries]
-        query_ids = [query["question_id"] for query in queries]
-        retrieved_sources = searcher(query_questions, build_path, k)
+        questions_and_ids = _extract_questions_and_ids(queries)
+        retrieved_sources = searcher(questions_and_ids[0], build_path, k)
         minimal_search_results = _minimal_search_results_builder(
-            query_ids, query_questions, retrieved_sources
+            *questions_and_ids, retrieved_sources
         )
         student_search_result_model = StudentSearchResults(
             search_results=minimal_search_results, k=k
         )
-        _object_to_json(
+        _save_object(
             student_search_result_model, save_directory, Path(dataset_path).name
         )
 
-    def answer(self, query: str, k=_K, build_path: str = _PROCESSED_DATA) -> None:
-        retrieved_sources = search(query, k, build_path)
-        answer = answer_generator(query, retrieved_sources, k)
+    def answer(
+        self, query: str, k: int = _K, build_path: str = _PROCESSED_DATA
+    ) -> None:
+        answer = answer_generator(query, build_path, k)
         print(answer)
 
     def evaluate(

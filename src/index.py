@@ -1,4 +1,3 @@
-from os import wait
 import bm25s
 from itertools import chain
 from typing import List
