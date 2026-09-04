@@ -1,24 +1,29 @@
 """Answer generation: turn retrieved sources into grounded answers."""
 
+import sys
 import uuid
 from functools import lru_cache
 from typing import List
 
+from .errors import InputError
 from .io import _read_document
 from .llm import LLM
 from .models import MinimalAnswer, MinimalSearchResults, MinimalSource
 from .search import _minimal_search_results_builder, searcher
 
+
 _PROMPT_TEMPLATE = """You are answering questions about the vLLM codebase.
-Use only the context below. If it does not contain the answer, say so.
+Answer the question concisely in a few sentences, grounded only in the
+numbered context below. If the context does not contain the answer, say
+the context is insufficient.
 
 Context:
 {context}
 
-Question: {question}
-Answer:"""
+Question: {question}"""
 
 _NO_CONTEXT = "(no context retrieved)"
+_MAX_CONTEXT_CHARS = 6000
 
 
 @lru_cache(maxsize=256)
@@ -49,15 +54,38 @@ def _extract_sources(minimal_sources: List[MinimalSource]) -> List[str]:
         try:
             document = _cached_document(minimal_source.file_path)
         except OSError as error:
-            print(f"skipping {minimal_source.file_path}: {error}")
+            print(
+                f"skipping {minimal_source.file_path}: {error}",
+                file=sys.stderr,
+            )
             continue
-        texts.append(
-            document[
-                minimal_source.first_character_index:
-                minimal_source.last_character_index
-            ]
-        )
+        first_index = minimal_source.first_character_index
+        last_index = minimal_source.last_character_index
+        texts.append(document[first_index:last_index])
     return texts
+
+
+def _context_builder(sources: List[str]) -> str:
+    """Number the retrieved snippets, highest ranked first, to budget.
+
+    The retrieved sources are reported in full in the search results;
+    only what reaches the model is capped, so a long tail of low-ranked
+    snippets cannot crowd out the top hits or stall generation.
+
+    Args:
+        sources: Snippet texts in retrieval rank order.
+
+    Returns:
+        The numbered context block, at most _MAX_CONTEXT_CHARS long.
+    """
+    budgeted: List[str] = []
+    remaining = _MAX_CONTEXT_CHARS
+    for rank, text in enumerate(sources, start=1):
+        if remaining <= 0:
+            break
+        budgeted.append(f"[{rank}] {text[:remaining]}")
+        remaining -= len(text)
+    return "\n\n".join(budgeted)
 
 
 def _build_prompts(
@@ -74,9 +102,7 @@ def _build_prompts(
     prompts: List[str] = []
     for minimal_search_result in minimal_search_results:
         sources = _extract_sources(minimal_search_result.retrieved_sources)
-        context = "\n\n".join(
-            f"[{rank}] {text}" for rank, text in enumerate(sources, start=1)
-        )
+        context = _context_builder(sources)
         prompts.append(
             _PROMPT_TEMPLATE.format(
                 context=context or _NO_CONTEXT,
@@ -90,7 +116,7 @@ def answers_generator(
     minimal_search_results: List[MinimalSearchResults],
     model: LLM | None = None,
 ) -> List[MinimalAnswer]:
-    """Generate an answer for every search result, in one batch.
+    """Generate an answer for every search result, batched.
 
     Args:
         minimal_search_results: Questions with their retrieved sources.
@@ -115,9 +141,7 @@ def answers_generator(
     ]
 
 
-def answer_generator(
-    query: str, build_path: str, k: int
-) -> MinimalAnswer | None:
+def answer_generator(query: str, build_path: str, k: int) -> MinimalAnswer:
     """Retrieve context for a single query and answer it.
 
     Args:
@@ -126,13 +150,18 @@ def answer_generator(
         k: Number of sources to retrieve.
 
     Returns:
-        The answered question, or None when the query is empty.
+        The answered question.
+
+    Raises:
+        InputError: The query is empty, or k is not positive.
     """
-    if not query.strip() or k <= 0:
-        return None
+    if not isinstance(query, str) or not query.strip():
+        raise InputError("query must be non-empty text")
+    if k <= 0:
+        raise InputError(f"k must be positive, got {k}")
     retrieved_sources = searcher([query], build_path, k)
     minimal_search_results = _minimal_search_results_builder(
         [query], [str(uuid.uuid4())], retrieved_sources
     )
     answers = answers_generator(minimal_search_results)
-    return answers[0] if answers else None
+    return answers[0]

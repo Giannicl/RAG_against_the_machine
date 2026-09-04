@@ -43,13 +43,14 @@ test:
 
 lint:
 	uv run $(linter) .
-	uv run $(type_checker) .\
-		--ignore-missing-imports --disallow-untyped-defs --check-untyped-defs --warn-return-any
+	uv run $(type_checker) . --warn-return-any --warn-unused-ignores \
+		--ignore-missing-imports --disallow-untyped-defs --check-untyped-defs
 
 lint-strict:
 	uv run $(linter) .
 	uv run $(type_checker) . --strict
 
 clean:
-	find . -type d -name '__pycache__' -prune -exec rm -rf {} +
+	find . -path ./.venv -prune -o -path ./data -prune -o \
+		-type d -name '__pycache__' -print0 | xargs -0 rm -rf
 	rm -rf .mypy_cache .pytest_cache

@@ -11,10 +11,10 @@ dependencies = [
 			"fire>=0.6.0",
 			"tqdm>=4.66.0",
 			"torch>=2.2.0",
-			"Langchain>=1.3.14",
+			"langchain-core>=0.3.0",
 			"langchain-text-splitters>=1.1.2",
 			"bm25s>=0.3.10",
-			"bitsandbytes>=0.50.1"
+			"pystemmer>=3.1.0",
 ]
 
 [dependency-groups]
@@ -27,21 +27,36 @@ dev = [
 [tool.uv]
 package = false
 
+# The pipeline runs on CPU only: without this, uv sync resolves the CUDA
+# build of torch and pulls several gigabytes of nvidia-* wheels.
+[tool.uv.sources]
+torch = [{ index = "pytorch-cpu" }]
+
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+
 [tool.mypy]
 warn_unused_ignores = true
 disallow_untyped_defs = true
 check_untyped_defs = true
-exclude = ['^data/', '^llm_sdk/', '\.venv/', '_docs']
+exclude = ['^data/', '\.venv/', '_docs']
 
 
 [[tool.mypy.overrides]]
 module = [
-	"llm_sdk", "llm_sdk.*",
 	"torch", "torch.*",
 	"transformers", "transformers.*",
 	"huggingface_hub", "huggingface_hub.*",
-	"tqdm", "tqdm.*"
-
+	"tqdm", "tqdm.*",
+	"bm25s", "bm25s.*",
+	"Stemmer",
+	"fire", "fire.*"
 ]
 
 ignore_missing_imports = true
