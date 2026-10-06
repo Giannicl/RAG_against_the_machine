@@ -13,11 +13,11 @@ _MODEL_NAME = "Qwen/Qwen3-0.6B"
 _MAX_NEW_TOKENS = 192
 _BATCH_SIZE = 4
 _DO_SAMPLE = False
-_THINK_PATTERN = re.compile(r"<think>.*?</think>", re.DOTALL)
+_THINK_PATTERN = re.compile(r"<think>.*?(?:</think>|\Z)", re.DOTALL)
 
 
 def _thinking_stripper(completion: str) -> str:
-    """Drop any <think>...</think> span a reasoning model emitted.
+    """Drop any <think> span a reasoning model emitted, closed or cut off.
 
     Args:
         completion: Decoded model completion.

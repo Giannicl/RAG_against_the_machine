@@ -1,5 +1,6 @@
 """Ingestion: persist chunked documents into a BM25 index on disk."""
 
+import os
 import re
 from itertools import chain
 from pathlib import Path
@@ -58,20 +59,26 @@ def _code_tokenizer(text: str) -> List[str]:
     return stemmed
 
 
-def _chunk_text_composer(document: Document) -> str:
-    """Prefix a chunk's text with its file path for indexing.
+def _chunk_text_composer(document: Document, root: str) -> str:
+    """Prefix a chunk's text with its in-repository path for indexing.
 
     The path names the file's topic (e.g. docs/cli/serve.md), which
-    queries often mention while a short chunk's body may not. Only the
-    indexed text changes; the stored source spans are untouched.
+    queries often mention while a short chunk's body may not. It is
+    written twice so those topic words weigh about as much as a term
+    the body repeats. The corpus root shared by every file (e.g.
+    data/raw/vllm-0.10.1/) is stripped first: it carries no signal and
+    would only lengthen every chunk. Only the indexed text changes;
+    the stored source spans keep the full path.
 
     Args:
         document: Chunk carrying file_path metadata.
+        root: Directory prefix shared by every file in the corpus.
 
     Returns:
-        The chunk text with its file path prepended.
+        The chunk text with its relative path prepended twice.
     """
-    return f"{document.metadata['file_path']}\n{document.page_content}"
+    path = os.path.relpath(document.metadata["file_path"], root)
+    return f"{path}\n{path}\n{document.page_content}"
 
 
 def _flatten(corpus: List[List[Document]]) -> List[Document]:
@@ -105,8 +112,11 @@ def indexer(
         raise InputError(
             "nothing to index: no indexable chunks in the corpus"
         )
+    root = os.path.commonpath(
+        [os.path.dirname(chunk.metadata["file_path"]) for chunk in documents]
+    ) or "."
     text = [
-        _chunk_text_composer(chunk)
+        _chunk_text_composer(chunk, root)
         for chunk in tqdm(
             documents,
             desc="Composing",

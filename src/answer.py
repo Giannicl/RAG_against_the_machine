@@ -23,7 +23,8 @@ Context:
 Question: {question}"""
 
 _NO_CONTEXT = "(no context retrieved)"
-_MAX_CONTEXT_CHARS = 6000
+_NO_ANSWER = "No answer could be generated from the retrieved sources."
+_MAX_CONTEXT_CHARS = 10000
 
 
 @lru_cache(maxsize=256)
@@ -76,7 +77,8 @@ def _context_builder(sources: List[str]) -> str:
         sources: Snippet texts in retrieval rank order.
 
     Returns:
-        The numbered context block, at most _MAX_CONTEXT_CHARS long.
+        The numbered context block: at most _MAX_CONTEXT_CHARS of
+        snippet text, plus the rank labels and separators.
     """
     budgeted: List[str] = []
     remaining = _MAX_CONTEXT_CHARS
@@ -123,7 +125,8 @@ def answers_generator(
         model: Loaded LLM to reuse; a new one is built when omitted.
 
     Returns:
-        One MinimalAnswer per input search result, same order.
+        One MinimalAnswer per input search result, same order. An
+        empty completion gets a fixed message, never an empty answer.
     """
     if not minimal_search_results:
         return []
@@ -133,7 +136,7 @@ def answers_generator(
     return [
         MinimalAnswer(
             **minimal_search_result.model_dump(),
-            answer=answer,
+            answer=answer or _NO_ANSWER,
         )
         for minimal_search_result, answer in zip(
             minimal_search_results, answers

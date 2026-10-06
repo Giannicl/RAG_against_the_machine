@@ -1,0 +1,3 @@
+[flake8]
+# data/raw/ holds the vLLM corpus (third-party code), not project code.
+exclude = .git,.venv,__pycache__,.mypy_cache,.pytest_cache,data,_docs

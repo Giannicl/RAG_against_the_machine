@@ -71,9 +71,9 @@ def searcher(
         k: Number of sources to retrieve per query.
 
     Returns:
-        One ranked list per query, of k sources or of every chunk in
-        the corpus when k exceeds the corpus size. A query holding no
-        indexable token matches nothing and yields an empty list.
+        One ranked list per query, of at most k sources. Only chunks
+        sharing at least one term with the query are returned, so a
+        query holding no indexable or known token yields an empty list.
 
     Raises:
         InputError: The index cannot be loaded from `build_path`.
@@ -92,14 +92,17 @@ def searcher(
     if not matchable:
         return retrieved
     available_k = min(k, len(retriever.corpus))
-    results, _ = retriever.retrieve(
+    results, scores = retriever.retrieve(
         [query_tokens[index] for index in matchable],
         k=available_k,
         show_progress=len(matchable) > 1,
     )
+    # bm25s always fills the top-k; a zero score means no shared term,
+    # so those slots would be arbitrary chunks presented as evidence.
     for row, index in enumerate(matchable):
         retrieved[index] = [
             MinimalSource(**results[row, column])
             for column in range(results.shape[1])
+            if scores[row, column] > 0
         ]
     return retrieved

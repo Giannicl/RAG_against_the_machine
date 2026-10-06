@@ -1,0 +1,10 @@
+.venv/
+__pycache__/
+.mypy_cache/
+.pytest_cache/
+_docs/
+# The corpus, datasets, index and outputs are not shipped (subject X):
+# the evaluator places data/raw/ and data/datasets/ and generates the rest.
+data/
+# Test programs are for development only and are not submitted (subject V.3).
+tests/

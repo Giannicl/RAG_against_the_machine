@@ -10,8 +10,8 @@ from .answer import answer_generator, answers_generator
 from .chunking import file_composer
 from .evaluation import evaluator
 from .index import indexer
-from .io import _load_dataset, _load_student_search_results, _save_object
 from .errors import InputError
+from .io import _load_dataset, _load_student_search_results, _save_object
 from .llm import LLM
 from .models import StudentSearchResults, StudentSearchResultsAndAnswer
 from .search import (
@@ -24,7 +24,7 @@ from .search import (
 _INGEST_PATH = "data/raw/"
 _PROCESSED_DATA = "data/processed/"
 _UNANSWERED_QUESTIONS_PATH = (
-    "data/datasets/UnansweredQuestions/dataset_docs_public.json"
+    "data/datasets/public/UnansweredQuestions/dataset_docs_public.json"
 )
 _GROUND_TRUTH = (
     "data/datasets/AnsweredQuestions/dataset_docs_public.json"
@@ -290,7 +290,7 @@ def main() -> int:
         interrupted.
     """
     try:
-        fire.Fire(Parser)
+        fire.Fire(Parser())
     except KeyboardInterrupt:
         print("Interrupted", file=sys.stderr)
         return 130
