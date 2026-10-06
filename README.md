@@ -67,6 +67,9 @@ saved to disk, and every file read back in is re-validated before use.
 - [uv](https://docs.astral.sh/uv/)
 - ~1.5 GB of disk for the Qwen3-0.6B weights (downloaded on first `answer`)
 
+**Supported model:** Qwen/Qwen3-0.6B, the default and the only model the CLI
+uses. No other model is supported or configured.
+
 ### Installation
 
 ```sh
@@ -452,9 +455,9 @@ most context per source.
 ## What I would improve
 
 - **Semantic retrieval next to BM25.** Paraphrased questions ("how do I
-  limit GPU memory") miss chunks that use other words
-  (`gpu_memory_utilization`). Dense embeddings combined with BM25 would
-  catch those.
+  reduce VRAM usage") miss chunks that use other words
+  (`gpu_memory_utilization`): the two share no token. Dense embeddings
+  combined with BM25 would catch those.
 - **A reranker on the top 50.** A small cross-encoder would reorder BM25's
   candidates by meaning. Some docs misses sit just outside the top 5.
 - **Structure-aware boundaries for Python.** Split on whole functions and
