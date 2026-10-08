@@ -96,6 +96,7 @@ def searcher(
         [query_tokens[index] for index in matchable],
         k=available_k,
         show_progress=len(matchable) > 1,
+        leave_progress=True,
     )
     # bm25s always fills the top-k; a zero score means no shared term,
     # so those slots would be arbitrary chunks presented as evidence.

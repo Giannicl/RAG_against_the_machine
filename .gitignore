@@ -3,8 +3,11 @@ __pycache__/
 .mypy_cache/
 .pytest_cache/
 _docs/
-# The corpus, datasets, index and outputs are not shipped (subject X):
-# the evaluator places data/raw/ and data/datasets/ and generates the rest.
-data/
+# data/raw/ (the vLLM corpus) is shipped: subject VI.7.1 requires it in the
+# repository layout. The index and outputs are generated during evaluation and
+# the datasets are provided by the evaluator (subject X).
+data/processed/
+data/output/
+data/datasets/
 # Test programs are for development only and are not submitted (subject V.3).
-tests/
+/tests/
